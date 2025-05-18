@@ -13,19 +13,6 @@ use Illuminate\Http\Request;
 
 class LeagueController extends Controller
 {
-    /**
-     * @param GameSimulatorService $gameSimulatorService
-     * @param FixtureService $fixtureService
-     * @param ChampionshipPredictorService $predictorService
-     */
-    public function __construct(
-        private readonly GameSimulatorService         $gameSimulatorService,
-        private readonly FixtureService               $fixtureService,
-        private readonly ChampionshipPredictorService $predictorService,
-    )
-    {
-    }
-
     public function getTeams(): JsonResponse
     {
         return response()->json([
@@ -33,7 +20,7 @@ class LeagueController extends Controller
         ]);
     }
 
-    public function getFixtures(Request $request): JsonResponse
+    public function getFixtures(Request $request, FixtureService $fixtureService): JsonResponse
     {
         $week = $request->get('week');
         $games = $this->fixtureService->getFixtures($week);
@@ -42,18 +29,18 @@ class LeagueController extends Controller
         ]);
     }
 
-    public function playNextWeek(): JsonResponse
+    public function playNextWeek(GameSimulatorService $gameSimulatorService): JsonResponse
     {
-        $playedGames = $this->gameSimulatorService->playWeek();
+        $playedGames = $gameSimulatorService->playWeek();
 
         return response()->json([
             'data' => $playedGames,
         ]);
     }
 
-    public function playAllWeek(): JsonResponse
+    public function playAllWeek(GameSimulatorService $gameSimulatorService): JsonResponse
     {
-        $playedGames = $this->gameSimulatorService->playAll();
+        $playedGames = $gameSimulatorService->playAll();
 
         return response()->json([
             'data' => $playedGames,
@@ -83,9 +70,9 @@ class LeagueController extends Controller
         return $standings;
     }
 
-    public function calculatePredictions(): JsonResponse
+    public function calculatePredictions(ChampionshipPredictorService $predictorService): JsonResponse
     {
-        $predictions = $this->predictorService->predictChampionshipChances();
+        $predictions = $predictorService->predictChampionshipChances();
 
         return response()->json([
             'data' => $predictions

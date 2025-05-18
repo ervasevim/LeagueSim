@@ -4,6 +4,10 @@ php artisan migrate
 php artisan db:seed
 
 npm run dev
+git clone 
+cd league...
+cp env
+php artisan key:generate
 
 
 # LeagueSimulator Projesi - Kurulum
@@ -28,6 +32,7 @@ docker exec -it leaguesim-fpm bash
 Container içinde veritabanı tablolarını oluşturmak ve başlangıç verilerini eklemek için sırasıyla şu komutları çalıştırın:
 
 ```bash
+composer install
 php artisan migrate
 php artisan db:seed
 ```
@@ -36,7 +41,6 @@ php artisan db:seed
    Proje kök dizininde (container dışında) aşağıdaki komutları çalıştırarak frontend bağımlılıklarını yükleyin ve geliştirme modunda derleyin:
 
 ```bash
-npm install
 npm run dev
 
 ```
