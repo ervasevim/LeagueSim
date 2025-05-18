@@ -155,14 +155,27 @@ class FixtureService
         }
     }
 
+    /**
+     * Retrieves the fixtures (games) optionally filtered by a specific week.
+     *
+     * If no games exist in the database, it triggers the generation of fixtures first.
+     * Then returns a collection of games with their associated home and away teams,
+     * filtered by the given week if provided, and ordered by week.
+     *
+     * @param int|null $week Optional week number to filter fixtures.
+     * @return \Illuminate\Database\Eloquent\Collection Collection of Game models.
+     */
     public function getFixtures(?int $week = null): \Illuminate\Database\Eloquent\Collection
     {
+        // Count existing games to check if fixtures need to be generated
         $gameCount = Game::all()->count();
 
+        // Generate fixtures if none exist
         if ($gameCount === 0) {
             $this->generateFixtures();
         }
 
+        // Retrieve games with related teams, optionally filtering by week
         return Game::with(['homeTeam', 'awayTeam'])
             ->when($week, function ($query, $week) {
                 return $query->where('week', $week);
@@ -170,8 +183,15 @@ class FixtureService
             ->orderBy('week')->get();
     }
 
+    /**
+     * Resets the state of all played games.
+     *
+     * This method clears the goals for both home and away teams and marks games as unplayed,
+     * effectively preparing the schedule for a fresh simulation or season restart.
+     */
     public function resetData(): void
     {
+        // Update all played games to reset scores and status
         Game::played()->update([
             'home_team_goal' => null,
             'away_team_goal' => null,
