@@ -19,7 +19,7 @@ Bu belge, LeagueSim projesini yerel ortamda Docker kullanarak çalıştırmak ve
 Projede PHP işlemlerini gerçekleştireceğiniz container'a bağlanmak için:
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 
 docker exec -it leaguesim-fpm bash
 ```
