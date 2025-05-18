@@ -1,0 +1,61 @@
+version: '3.1'
+services:
+    mysql:
+        image: 'mysql:8.0'
+        working_dir: /application
+        volumes:
+            - '.:/application'
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+        ports:
+            - '36002:3306'
+        networks:
+            - laravel
+
+    nginx:
+        image: 'nginx:alpine'
+        working_dir: /application
+        restart: unless-stopped
+        volumes:
+            - '.:/application'
+            - './docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf'
+        ports:
+            - '36000:80'
+        networks:
+            - laravel
+        depends_on:
+            - php-fpm
+
+    php-fpm:
+        build: docker/php-fpm
+        working_dir: /application
+        container_name: leaguesim-fpm
+        volumes:
+            - '.:/application'
+            - './docker/php-fpm/php-ini-overrides.ini:/etc/php/8.3/fpm/conf.d/99-overrides.ini'
+            - './docker/php-fpm/php-ini-overrides.ini:/etc/php/8.3/cli/conf.d/99-overrides.ini'
+        networks:
+            - laravel
+        depends_on:
+            - mysql
+
+    vite:
+        image: node:18-alpine
+        working_dir: /application
+        volumes:
+            - .:/application
+        command: sh -c "npm install && npm run dev"
+        ports:
+            - "5173:5173"
+        networks:
+            - laravel
+        depends_on:
+            - php-fpm
+
+
+networks:
+    laravel:
+        driver: bridge
