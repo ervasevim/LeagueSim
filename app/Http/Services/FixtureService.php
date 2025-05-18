@@ -8,6 +8,11 @@ use Illuminate\Support\Arr;
 
 class FixtureService
 {
+    /**
+     *  * Generates the fixture schedule for the season.
+     *
+     * @return void
+     */
     public function generateFixtures()
     {
         $teams = Team::all()->keyBy('id');
