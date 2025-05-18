@@ -43,9 +43,9 @@ php artisan migrate
 php artisan db:seed
 ```
 
-### 4. Frontend Dependencies and Build
+### 4. Frontend Build
 
-Outside the container, in the project root directory, install frontend dependencies and start the development server with:
+Outside the container, in the project root directory, start the development server with:
 
 ```bash
 npm run dev
