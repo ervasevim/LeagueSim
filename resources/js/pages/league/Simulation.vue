@@ -41,11 +41,20 @@
 
             <!-- Şampiyonluk yüzdeleri -->
             <div>
-                <h2 class="bg-gray-800 text-white p-2 font-semibold">Championship Predictions</h2>
-                <div v-for="team in predictions" :key="team.name" class="flex justify-between p-2 border-b">
-                    <span>{{ team.name }}</span>
-                    <span>{{ team.chance }}%</span>
-                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                    <tr class="bg-gray-800 text-white p-2 font-semibold">
+                        <th class="p-2">Championship Predictions</th>
+                        <th class="p-2">%</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="team in predictions" :key="team.name" class=" border-b">
+                        <td class="p-2">{{ team.name }}</td>
+                        <td class="p-2">{{ team.chance }}</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 

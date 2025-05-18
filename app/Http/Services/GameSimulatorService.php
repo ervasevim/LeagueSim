@@ -74,10 +74,11 @@ class GameSimulatorService
         $drawProbability = abs($homeWinProbability - $awayWinProbability) < 0.05 ? true : false;
 
         if ($drawProbability) {
-            $game->home_team_goal = $game->away_team_goal = random_int(0, 5);
+            $game->home_team_goal = $game->away_team_goal = random_int(0, 4);
         } else {
-            $winnerGoals = random_int(1, 5);
+            $winnerGoals = random_int(1, 4);
             $loserGoals = random_int(0, $winnerGoals - 1);
+
             $game->home_team_goal = $homePower > $awayPower ? $winnerGoals : $loserGoals;
             $game->away_team_goal = $awayPower > $homePower ? $winnerGoals : $loserGoals;
         }
