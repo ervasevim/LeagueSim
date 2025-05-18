@@ -34,6 +34,9 @@ Route::get('/api/predictions', [LeagueController::class, 'calculatePredictions']
 Route::get('/api/reset', [LeagueController::class, 'resetData'])
     ->name('reset');
 
+Route::get('/api/current_week', [LeagueController::class, 'currentWeek'])
+    ->name('current_week');
+
 
 Route::get('/teams', function () {
     return Inertia::render('league/Teams');

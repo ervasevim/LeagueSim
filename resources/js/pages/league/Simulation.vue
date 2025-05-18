@@ -93,7 +93,12 @@ const predictions = ref([])
 const currentWeek = ref(1)
 
 const fetchAll = async () => {
+    await fetchCurrentWeek()
     await Promise.all([fetchStandings(), fetchFixtures(), fetchPredictions()])
+}
+const fetchCurrentWeek = async () => {
+    const res = await axios.get('/api/current_week')
+    currentWeek.value = res.data.data
 }
 
 const fetchStandings = async () => {

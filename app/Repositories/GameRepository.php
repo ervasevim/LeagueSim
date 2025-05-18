@@ -18,8 +18,14 @@ class GameRepository
 
     public function findCurrentWeek()
     {
-        return Game::where('is_played', false)
+        $week = Game::where('is_played', false)
             ->orderBy('week', 'asc')
             ->value('week');
+
+        if ($week === null) {
+            $week = Game::max('week');
+        }
+
+        return $week;
     }
 }

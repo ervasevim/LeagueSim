@@ -87,4 +87,11 @@ class LeagueController extends Controller
             'message' => "Data has been successfully reset."
         ]);
     }
+
+    public function currentWeek(GameSimulatorService $gameSimulatorService): JsonResponse
+    {
+        return response()->json([
+            'data' => $gameSimulatorService->getCurrentWeek()
+        ]);
+    }
 }

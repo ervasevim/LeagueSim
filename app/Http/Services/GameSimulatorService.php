@@ -8,52 +8,8 @@ use App\Repositories\GameRepository;
 
 class GameSimulatorService
 {
-
     public function __construct(private readonly GameRepository $gameRepository)
     {
-    }
-
-    public function createGames(): void
-    {
-        $teams = Team::all();
-        $games = [];
-
-        foreach ($teams as $i => $homeTeam) {
-            foreach ($teams as $j => $awayTeam) {
-                if ($i === $j) {
-                    continue;
-                }
-                $games[] = [$homeTeam->id, $awayTeam->id];
-            }
-        }
-
-        shuffle($games);
-        $chunks = array_chunk($games, 2);
-        $week = 1;
-
-        //TODO burada algoritma güncellenip takımların aynı haftada maç yapmasını engelle.
-        foreach ($chunks as $games) {
-            foreach ($games as [$homeTeamId, $awayTeamId]) {
-                Game::create([
-                    'home_team_id' => $homeTeamId,
-                    'away_team_id' => $awayTeamId,
-                    'home_team_goal' => null,
-                    'away_team_goal' => null,
-                    'is_played' => false,
-                    'week' => $week,
-                ]);
-            }
-            $week++;
-        }
-    }
-
-    public function getAllGames(): \Illuminate\Database\Eloquent\Collection
-    {
-        $gameCount = Game::all()->count();
-        if ($gameCount === 0) {
-            $this->createGames();
-        }
-        return Game::with(['homeTeam', 'awayTeam'])->orderBy('week')->get();
     }
 
     public function simulateGame(Game $game): Game
@@ -109,7 +65,7 @@ class GameSimulatorService
 
     public function playWeek(): array
     {
-        $currentWeek = $this->gameRepository->findCurrentWeek();
+        $currentWeek = $this->getCurrentWeek();
 
         $games = $this->findGames($currentWeek);
         $playedGames = [];
@@ -136,5 +92,10 @@ class GameSimulatorService
     public function findGames(?int $week = null)
     {
         return $this->gameRepository->findUnplayedGames($week);
+    }
+
+    public function getCurrentWeek()
+    {
+        return $this->gameRepository->findCurrentWeek();
     }
 }
