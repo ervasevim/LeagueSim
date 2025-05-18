@@ -23,7 +23,7 @@ class LeagueController extends Controller
     public function getFixtures(Request $request, FixtureService $fixtureService): JsonResponse
     {
         $week = $request->get('week');
-        $games = $this->fixtureService->getFixtures($week);
+        $games = $fixtureService->getFixtures($week);
         return response()->json([
             'data' => $games,
         ]);
@@ -76,6 +76,15 @@ class LeagueController extends Controller
 
         return response()->json([
             'data' => $predictions
+        ]);
+    }
+
+    public function resetData(FixtureService $fixtureService): JsonResponse
+    {
+        $fixtureService->resetData();
+
+        return response()->json([
+            'message' => "Data has been successfully reset."
         ]);
     }
 }

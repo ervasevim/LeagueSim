@@ -45,6 +45,7 @@ class FixtureService
 
             $week++;
 
+            // Round-robin rotasyonu
             $last = array_pop($homeTeams);
             array_splice($homeTeams, 1, 0, [$last]);
             $awayTeams = array_reverse($homeTeams);
@@ -64,10 +65,15 @@ class FixtureService
                 return $query->where('week', $week);
             })
             ->orderBy('week')->get();
-        foreach ($games as $game) {
-            dump($game->homeTeam->name . ' => ' . $game->awayTeam->name);
-        }
-        die();
+    }
+
+    public function resetData(): void
+    {
+        Game::played()->update([
+            'home_team_goal' => null,
+            'away_team_goal' => null,
+            'is_played' => false,
+        ]);
     }
 
 }

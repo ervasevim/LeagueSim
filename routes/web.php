@@ -31,6 +31,9 @@ Route::get('/api/standings', [LeagueController::class, 'calculateStandings'])
 Route::get('/api/predictions', [LeagueController::class, 'calculatePredictions'])
     ->name('predictions');
 
+Route::get('/api/reset', [LeagueController::class, 'resetData'])
+    ->name('reset');
+
 
 Route::get('/teams', function () {
     return Inertia::render('league/Teams');
