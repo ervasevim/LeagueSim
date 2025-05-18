@@ -45,7 +45,7 @@ php artisan db:seed
 
 ### 4. Frontend Build
 
-Outside the container, in the project root directory, start the development server with:
+Inside the container, in the project root directory, start the development server with:
 
 ```bash
 npm run dev
