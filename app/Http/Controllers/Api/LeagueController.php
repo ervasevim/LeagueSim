@@ -10,9 +10,13 @@ use App\Models\Game;
 use App\Models\Team;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Random\RandomException;
 
 class LeagueController extends Controller
 {
+    /**
+     * @return JsonResponse
+     */
     public function getTeams(): JsonResponse
     {
         return response()->json([
@@ -20,6 +24,11 @@ class LeagueController extends Controller
         ]);
     }
 
+    /**
+     * @param Request $request
+     * @param FixtureService $fixtureService
+     * @return JsonResponse
+     */
     public function getFixtures(Request $request, FixtureService $fixtureService): JsonResponse
     {
         $week = $request->get('week');
@@ -29,6 +38,11 @@ class LeagueController extends Controller
         ]);
     }
 
+    /**
+     * @param GameSimulatorService $gameSimulatorService
+     * @return JsonResponse
+     * @throws RandomException
+     */
     public function playNextWeek(GameSimulatorService $gameSimulatorService): JsonResponse
     {
         $playedGames = $gameSimulatorService->playWeek();
@@ -38,6 +52,11 @@ class LeagueController extends Controller
         ]);
     }
 
+    /**
+     * @param GameSimulatorService $gameSimulatorService
+     * @return JsonResponse
+     * @throws RandomException
+     */
     public function playAllWeek(GameSimulatorService $gameSimulatorService): JsonResponse
     {
         $playedGames = $gameSimulatorService->playAll();
@@ -47,6 +66,9 @@ class LeagueController extends Controller
         ]);
     }
 
+    /**
+     * @return array
+     */
     public function calculateStandings()
     {
         $teams = Team::all();
@@ -70,6 +92,11 @@ class LeagueController extends Controller
         return $standings;
     }
 
+    /**
+     * @param ChampionshipPredictorService $predictorService
+     * @return JsonResponse
+     * @throws RandomException
+     */
     public function calculatePredictions(ChampionshipPredictorService $predictorService): JsonResponse
     {
         $predictions = $predictorService->predictChampionshipChances();
@@ -79,6 +106,10 @@ class LeagueController extends Controller
         ]);
     }
 
+    /**
+     * @param FixtureService $fixtureService
+     * @return JsonResponse
+     */
     public function resetData(FixtureService $fixtureService): JsonResponse
     {
         $fixtureService->resetData();
@@ -88,6 +119,10 @@ class LeagueController extends Controller
         ]);
     }
 
+    /**
+     * @param GameSimulatorService $gameSimulatorService
+     * @return JsonResponse
+     */
     public function currentWeek(GameSimulatorService $gameSimulatorService): JsonResponse
     {
         return response()->json([
