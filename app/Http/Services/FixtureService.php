@@ -4,51 +4,149 @@ namespace App\Http\Services;
 
 use App\Models\Game;
 use App\Models\Team;
+use Illuminate\Support\Arr;
 
 class FixtureService
 {
     public function generateFixtures()
     {
-        $teams = Team::all();
+        $teams = Team::all()->keyBy('id');
+        $teams = $teams->shuffle();
+        $weekCount = $teams->count() - 1;
 
-        $teamIds = $teams->pluck('id')->toArray();
-        $teamCount = count($teamIds);
-        $totalRounds = $teamCount - 1;
-        $matchesPerRound = $teamCount / 2;
+        $matches = [];
+        // iterate all weeks
+        for ($week = 0; $week < $weekCount; $week++) {
+            foreach ($teams as $homeTeam) {
+                // flip home/away status
+                $homeTeam->home = !$homeTeam->home;
 
-        $homeTeams = $teamIds;
-        $awayTeams = array_reverse($teamIds);
+                foreach ($teams as $awayTeam) {
+                    if ($homeTeam->id == $awayTeam->id)
+                        continue;
 
-        $week = 1;
+                    // Validates if the match is playable
+                    if ($this->_canPlayThisWeek($matches, $week, $homeTeam->id, $awayTeam->id) &&
+                        $this->_canPlayThisHalf($matches, $homeTeam->id, $awayTeam->id)) {
+                        $awayTeam->home = !$homeTeam->home;
+                        // each team cannot be home or away during 3 weeks
+                        $this->_fixHomeAwayStatus($matches, $week, $homeTeam, $awayTeam);
+                        // set home / away team ids
+                        $homeTeamId = $homeTeam->home ? $homeTeam->id : $awayTeam->id;
+                        $awayTeamId = $homeTeam->home ? $awayTeam->id : $homeTeam->id;
+                        // insert match
+                        $matches[$week][] = [
+                            'home' => $homeTeamId,
+                            'away' => $awayTeamId
+                        ];
 
-        for ($round = 0; $round < $totalRounds; $round++) {
-            for ($i = 0; $i < $matchesPerRound; $i++) {
-                $home = $homeTeams[$i];
-                $away = $awayTeams[$i];
+                        // for first half
+                        Game::create([
+                            'home_team_id' => $homeTeamId,
+                            'away_team_id' => $awayTeamId,
+                            'week' => $week + 1,
+                        ]);
 
-                if ($home !== $away) {
-                    // İlk yarı
-                    Game::create([
-                        'home_team_id' => $home,
-                        'away_team_id' => $away,
-                        'week' => $week,
-                    ]);
+                        // insert reverse of first half for second half
+                        Game::create([
+                            'home_team_id' => $awayTeamId,
+                            'away_team_id' => $homeTeamId,
+                            'week' => $week + $weekCount + 1,
+                        ]);
 
-                    // İkinci yarı (rövanş)
-                    Game::create([
-                        'home_team_id' => $away,
-                        'away_team_id' => $home,
-                        'week' => $week + $totalRounds,
-                    ]);
+                        break;
+                    }
+
                 }
             }
+        }
+    }
 
-            $week++;
+    /**
+     * Checks home team and away team play this week.
+     * The rule is each teams can play one time on week
+     *
+     * @param $matches
+     * @param $week
+     * @param $homeTeamId
+     * @param $awayTeamId
+     * @return bool
+     */
+    private function _canPlayThisWeek($matches, $week, $homeTeamId, $awayTeamId): bool
+    {
+        // if is first match of week
+        if (!isset($matches[$week]))
+            return true;
 
-            // Round-robin rotasyonu
-            $last = array_pop($homeTeams);
-            array_splice($homeTeams, 1, 0, [$last]);
-            $awayTeams = array_reverse($homeTeams);
+        $matchesThisWeek = $matches[$week];
+
+        $playedTeams = [];
+        foreach ($matchesThisWeek as $match) {
+            $playedTeams[] = $match['home'];
+            $playedTeams[] = $match['away'];
+        }
+
+        return !in_array($homeTeamId, $playedTeams) && !in_array($awayTeamId, $playedTeams);
+    }
+
+    /**
+     * It checks whether the two teams have already played a match in this half
+     *
+     * @param $matches
+     * @param $homeTeamId
+     * @param $awayTeamId
+     * @return bool
+     */
+    private function _canPlayThisHalf($matches, $homeTeamId, $awayTeamId): bool
+    {
+        $allMatches = Arr::flatten($matches, 1);
+        foreach ($allMatches as $match) {
+            if (($match['home'] == $homeTeamId || $match['away'] == $homeTeamId) &&
+                ($match['home'] == $awayTeamId || $match['away'] == $awayTeamId)
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Adjusts the home/away status of the teams. Each team can be the home or away side at most twice in a row
+     *
+     * @param $matches
+     * @param $week
+     * @param $homeTeam
+     * @param $awayTeam
+     * @return void
+     */
+    private function _fixHomeAwayStatus($matches, $week, &$homeTeam, &$awayTeam)
+    {
+        $homeTeamStatusIsOk = false;
+        $awayTeamStatusIsOk = false;
+
+        $homeTeamId = $homeTeam->home ? $homeTeam->id : $awayTeam->id;
+        $awayTeamId = $awayTeam->home ? $homeTeam->id : $awayTeam->id;
+
+        foreach ($matches as $matchWeek => $matchesOnWeek) {
+            // just pay attention on last 2 week
+            if ($week - $matchWeek > 2)
+                continue;
+
+            foreach ($matchesOnWeek as $match) {
+                if ($match['home'] != $homeTeamId) {
+                    $homeTeamStatusIsOk = true;
+                }
+
+                if ($match['away'] != $awayTeamId) {
+                    $awayTeamStatusIsOk = true;
+                }
+            }
+        }
+
+        if (!$homeTeamStatusIsOk || !$awayTeamStatusIsOk) {
+            $homeTeam->home = !$homeTeam->home;
+            $awayTeam->home = !$awayTeam->home;
         }
     }
 
@@ -75,5 +173,4 @@ class FixtureService
             'is_played' => false,
         ]);
     }
-
 }
